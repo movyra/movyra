@@ -417,7 +417,7 @@ export default function Feed() {
     return (
         <div className="bg-[#FFFFFF] min-h-screen w-full font-sans text-[#111111] pb-24">
             <div className="sticky top-0 z-30 bg-[#FFFFFF] border-b border-[#111111]/10 px-4 py-3 flex items-center justify-between">
-                <span className="font-black text-[1.4rem] tracking-tight text-[#00897B]">NagrikSetu</span>
+                <span className="font-black text-[1.4rem] tracking-tight text-[#00897B]"></span>
                 <div className="flex items-center gap-4">
                     <button onClick={() => navigate('/create')} className="outline-none active:scale-95 transition-transform">
                         <Plus size={26} className="text-[#111111]" strokeWidth={2.5} />

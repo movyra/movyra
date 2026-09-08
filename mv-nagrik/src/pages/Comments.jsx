@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, Send, Trash2, User, Shield } from 'lucide-react';
+import { ChevronLeft, Send, Trash2, User, Shield, MessageCircle } from 'lucide-react';
 import { collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp, deleteDoc, doc } from 'firebase/firestore';
 import { db, auth } from '../firebaseConfig';
 
