@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ChevronLeft, UploadCloud, MapPin, EyeOff, Eye, Image as ImageIcon, Video, X, CheckCircle } from 'lucide-react';
+import { ChevronLeft, UploadCloud, MapPin, EyeOff, Eye, Image as ImageIcon, Video, X, CheckCircle, Shield } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from '../firebaseConfig';
 
@@ -29,23 +29,23 @@ export default function CreatePost() {
         if (supported.includes(savedLang)) setLang(savedLang);
     }, []);
 
-    // 15 Comprehensive Indian Language Translations
+    // Simplified Terminology
     const t = {
-        en: { header: "Create Post", media_box: "Select Photo or Video", title_ph: "Give your post a title", desc_ph: "Write details about this update...", loc_ph: "Enter Ward / Area name", anon_title: "Post Anonymously", anon_sub: "Hide your name and profile photo", submit: "Share Post", publishing: "Uploading media...", err_media: "Please choose a media file.", err_fields: "Please fill in all required fields." },
-        hi: { header: "पोस्ट बनाएं", media_box: "फ़ोटो या वीडियो चुनें", title_ph: "अपनी पोस्ट को एक शीर्षक दें", desc_ph: "इस अपडेट के बारे में विवरण लिखें...", loc_ph: "वार्ड या क्षेत्र का नाम दर्ज करें", anon_title: "गुमनाम रूप से पोस्ट करें", anon_sub: "अपना नाम और प्रोफ़ाइल फ़ोटो छिपाएं", submit: "पोस्ट साझा करें", publishing: "मीडिया अपलोड हो रहा है...", err_media: "कृपया एक मीडिया फ़ाइल चुनें।", err_fields: "कृपया सभी आवश्यक फ़ील्ड भरें।" },
-        hinglish: { header: "Post Banayein", media_box: "Photo ya Video Chunein", title_ph: "Post ka title likhein", desc_ph: "Update ki details likhein...", loc_ph: "Ward / Area ka naam darj karein", anon_title: "Anonymous Post Karein", anon_sub: "Apna naam aur photo hide karein", submit: "Post Share Karein", publishing: "Media upload ho raha hai...", err_media: "Ek media file choose karein.", err_fields: "Sabhi zaroori fields bharein." },
-        mr: { header: "पोस्ट तयार करा", media_box: "फोटो किंवा व्हिडिओ निवडा", title_ph: "आपल्या पोस्टला शीर्षक द्या", desc_ph: "या अपडेटबद्दल तपशील लिहा...", loc_ph: "प्रभाग किंवा परिसराचे नाव प्रविष्ट करा", anon_title: "अनामिकपणे पोस्ट करा", anon_sub: "आपले नाव आणि फोटो लपवा", submit: "पोस्ट शेअर करा", publishing: "मीडिया अपलोड होत आहे...", err_media: "कृपया मीडिया फाइल निवडा.", err_fields: "कृपया सर्व आवश्यक माहिती भरा." },
-        gu: { header: "પોસ્ટ બનાવો", media_box: "ફોટો અથવા વિડિઓ પસંદ કરો", title_ph: "તમારી પોસ્ટને શીર્ષક આપો", desc_ph: "આ અપડેટ વિશે વિગતો લખો...", loc_ph: "વોર્ડ અથવા વિસ્તારનું નામ દાખલ કરો", anon_title: "અનામી રીતે પોસ્ટ કરો", anon_sub: "તમારું નામ અને ફોટો છુપાવો", submit: "પોસ્ટ શેર કરો", publishing: "મીડિયા અપલોડ થઈ રહ્યું છે...", err_media: "કૃપા કરીને મીડિયા ફાઇલ પસંદ કરો.", err_fields: "કૃપા કરીને બધી જરૂરી માહિતી ભરો." },
-        te: { header: "పోస్ట్‌ను సృష్టించండి", media_box: "ఫోటో లేదా వీడియోను ఎంచుకోండి", title_ph: "మీ పోస్ట్‌కు శీర్షిక ఇవ్వండి", desc_ph: "ఈ అప్‌డేట్ గురించి వివరాలను వ్రాయండి...", loc_ph: "వార్డు లేదా ప్రాంతం పేరును నమోదు చేయండి", anon_title: "అనామకంగా పోస్ట్ చేయండి", anon_sub: "మీ పేరు మరియు ఫోటోను దాచండి", submit: "పోస్ట్‌ను భాగస్వామ్యం చేయండి", publishing: "మీడియా అప్‌లోడ్ అవుతోంది...", err_media: "దయచేసి మీడియా ఫైల్‌ను ఎంచుకోండి.", err_fields: "దయచేసి అవసరమైన అన్ని ఫీల్డ్‌లను పూరించండి." },
-        ta: { header: "பதிவை உருவாக்கவும்", media_box: "புகைப்படம் அல்லது வீடியோவைத் தேர்ந்தெடுக்கவும்", title_ph: "உங்கள் பதிவிற்கு ஒரு தலைப்பைக் கொடுங்கள்", desc_ph: "இந்த புதுப்பிப்பு பற்றிய விவரங்களை எழுதுங்கள்...", loc_ph: "வார்டு அல்லது பகுதியின் பெயரை உள்ளிடவும்", anon_title: "அநாமதேயமாக பதிவு செய்யவும்", anon_sub: "உங்கள் பெயர் மற்றும் புகைப்படத்தை மறைக்கவும்", submit: "பதிவை பகிரவும்", publishing: "மீடியா பதிவேற்றப்படுகிறது...", err_media: "ஒரு மீடியா கோப்பைத் தேர்ந்தெடுக்கவும்.", err_fields: "தேவையான அனைத்து புலங்களையும் நிரப்பவும்." },
-        kn: { header: "ಪೋಸ್ಟ್ ರಚಿಸಿ", media_box: "ಫೋಟೋ ಅಥವಾ ವೀಡಿಯೊ ಆಯ್ಕೆಮಾಡಿ", title_ph: "ನಿಮ್ಮ ಪೋಸ್ಟ್‌ಗೆ ಶೀರ್ಷಿಕೆ ನೀಡಿ", desc_ph: "ಈ ನವೀಕರಣದ ಕುರಿತು ವಿವರಗಳನ್ನು ಬರೆಯಿರಿ...", loc_ph: "ವಾರ್ಡ್ ಅಥವಾ ಪ್ರದೇಶದ ಹೆಸರನ್ನು ನಮೂದಿಸಿ", anon_title: "ಅನಾಮಧೇಯವಾಗಿ ಪೋಸ್ಟ್ ಮಾಡಿ", anon_sub: "ನಿಮ್ಮ ಹೆಸರು ಮತ್ತು ಫೋಟೋ ಮರೆಮಾಡಿ", submit: "ಪೋಸ್ಟ್ ಹಂಚಿಕೊಳ್ಳಿ", publishing: "ಮಾಧ್ಯಮ ಅಪ್‌ಲೋಡ್ ಆಗುತ್ತಿದೆ...", err_media: "ದಯವಿಟ್ಟು ಮಾಧ್ಯಮ ಫೈಲ್ ಆಯ್ಕೆಮಾಡಿ.", err_fields: "ದಯವಿಟ್ಟು ಅಗತ್ಯವಿರುವ ಎಲ್ಲಾ ವಿವರಗಳನ್ನು ಭರ್ತಿ ಮಾಡಿ." },
-        ml: { header: "പോസ്റ്റ് സൃഷ്ടിക്കുക", media_box: "ഫോട്ടോ അല്ലെങ്കിൽ വീഡിയോ തിരഞ്ഞെടുക്കുക", title_ph: "നിങ്ങളുടെ പോസ്റ്റിന് ഒരു തലക്കെട്ട് നൽകുക", desc_ph: "ഈ അപ്‌ഡേറ്റിനെക്കുറിച്ചുള്ള വിശദാംശങ്ങൾ എഴുതുക...", loc_ph: "വാർഡ് അല്ലെങ്കിൽ പ്രദേശത്തിന്റെ പേര് നൽകുക", anon_title: "അജ്ഞാതമായി പോസ്റ്റ് ചെയ്യുക", anon_sub: "നിങ്ങളുടെ പേരും ഫോട്ടോയും മറയ്ക്കുക", submit: "പോസ്റ്റ് പങ്കിടുക", publishing: "മീഡിയ അപ്‌ലോഡ് ചെയ്യുന്നു...", err_media: "ദയവായി ഒരു മീഡിയ ഫയൽ തിരഞ്ഞെടുക്കുക.", err_fields: "ദയവായി ആവശ്യമായ എല്ലാ ഫീൽഡുകളും പൂരിപ്പിക്കുക." },
-        bn: { header: "পোস্ট তৈরি করুন", media_box: "ছবি বা ভিডিও নির্বাচন করুন", title_ph: "আপনার পোস্টের একটি শিরোনাম দিন", desc_ph: "এই আপডেট সম্পর্কে বিস্তারিত লিখুন...", loc_ph: "ওয়ার্ড বা এলাকার নাম লিখুন", anon_title: "বেনামে পোস্ট করুন", anon_sub: "আপনার নাম এবং ছবি লুকান", submit: "পোস্ট শেয়ার করুন", publishing: "মিডিয়া আপলোড হচ্ছে...", err_media: "অনুগ্রহ করে একটি মিডিয়া ফাইল নির্বাচন করুন।", err_fields: "সমস্ত প্রয়োজনীয় ক্ষেত্র পূরণ করুন।" },
-        pa: { header: "ਪੋਸਟ ਬਣਾਓ", media_box: "ਫੋਟੋ ਜਾਂ ਵੀਡੀਓ ਚੁਣੋ", title_ph: "ਆਪਣੀ ਪੋਸਟ ਨੂੰ ਇੱਕ ਸਿਰਲੇਖ ਦਿਓ", desc_ph: "ਇਸ ਅੱਪਡੇਟ ਬਾਰੇ ਵੇਰਵੇ ਲਿਖੋ...", loc_ph: "ਵਾਰਡ ਜਾਂ ਖੇਤਰ ਦਾ ਨਾਮ ਦਰਜ ਕਰੋ", anon_title: "ਅਗਿਆਤ ਰੂਪ ਵਿੱਚ ਪੋਸਟ ਕਰੋ", anon_sub: "ਆਪਣਾ ਨਾਮ ਅਤੇ ਫੋਟੋ ਲੁਕਾਓ", submit: "ਪੋਸਟ ਸਾਂਝੀ ਕਰੋ", publishing: "ਮੀਡੀਆ ਅੱਪਲੋਡ ਹੋ ਰਿਹਾ ਹੈ...", err_media: "ਕਿਰਪਾ ਕਰਕੇ ਇੱਕ ਮੀਡੀਆ ਫਾਈਲ ਚੁਣੋ।", err_fields: "ਕਿਰਪਾ ਕਰਕੇ ਸਾਰੇ ਲੋੜੀਂਦੇ ਖੇਤਰ ਭਰੋ।" },
-        or: { header: "ପୋଷ୍ଟ ସୃଷ୍ଟି କରନ୍ତୁ", media_box: "ଫଟୋ କିମ୍ବା ଭିଡିଓ ଚୟନ କରନ୍ତୁ", title_ph: "ଆପଣଙ୍କ ପୋଷ୍ଟକୁ ଏକ ଶୀର୍ଷକ ଦିଅନ୍ତୁ", desc_ph: "ଏହି ଅପଡେଟ୍ ବିଷୟରେ ବିବରଣୀ ଲେଖନ୍ତୁ...", loc_ph: "ୱାର୍ଡ କିମ୍ବା ଅଞ୍ଚଳ ନାମ ପ୍ରବେଶ କରନ୍ତୁ", anon_title: "ଅଜ୍ଞାତ ଭାବରେ ପୋଷ୍ଟ କରନ୍ତୁ", anon_sub: "ଆପଣଙ୍କ ନାମ ଏବଂ ଫଟୋ ଲୁଚାନ୍ତୁ", submit: "ପୋଷ୍ଟ ଅଂଶୀଦାର କରନ୍ତୁ", publishing: "ମିଡିଆ ଅପଲୋଡ୍ ହେଉଛି...", err_media: "ଦୟାକରି ଏକ ମିଡିଆ ଫାଇଲ୍ ଚୟନ କରନ୍ତୁ।", err_fields: "ଦୟାକରି ସମସ୍ତ ଆବଶ୍ୟକୀୟ କ୍ଷେତ୍ର ପୂରଣ କରନ୍ତୁ।" },
-        as: { header: "পোষ্ট সৃষ্টি কৰক", media_box: "ফটো বা ভিডিঅ' বাছনি কৰক", title_ph: "আপোনাৰ পোষ্টৰ এটা শিৰোনাম দিয়ক", desc_ph: "এই আপডেটৰ বিষয়ে বিৱৰণ লিখক...", loc_ph: "ৱাৰ্ড বা অঞ্চলৰ নাম লিখক", anon_title: "বেনামীভাৱে পোষ্ট কৰক", anon_sub: "আপোনাৰ নাম আৰু ফটো লুকুৱাওক", submit: "পোষ্ট শ্বেয়াৰ কৰক", publishing: "মিডিয়া আপলোড হৈ আছে...", err_media: "অনুগ্ৰহ কৰি এটা মিডিয়া ফাইল বাছনি কৰক।", err_fields: "অনুগ্ৰহ কৰি সকলো প্ৰয়োজনীয় তথ্য পূৰণ কৰক।" },
-        ur: { header: "پوسٹ بنائیں", media_box: "تصویر یا ویڈیو منتخب کریں", title_ph: "اپنی پوسٹ کو ایک عنوان دیں", desc_ph: "اس اپ ڈیٹ کی تفصیلات لکھیں...", loc_ph: "وارڈ یا علاقے کا نام درج کریں", anon_title: "گمنام طور پر پوسٹ کریں", anon_sub: "اپنا نام اور تصویر چھپائیں", submit: "پوسٹ شیئر کریں", publishing: "میڈیا اپ لوڈ ہو رہا ہے...", err_media: "براہ کرم میڈیا فائل منتخب کریں۔", err_fields: "براہ کرم تمام مطلوبہ خانے پر کریں۔" },
-        bho: { header: "पोस्ट बनाईं", media_box: "फोटो या वीडियो चुनीं", title_ph: "अपन पोस्ट के एगो शीर्षक दीं", desc_ph: "एह अपडेट के बारे में विवरण लिखीं...", loc_ph: "वार्ड या इलाका के नाम लिखीं", anon_title: "गुमनाम पोस्ट करीं", anon_sub: "अपन नाम आ फोटो छिपाईं", submit: "पोस्ट साझा करीं", publishing: "मीडिया अपलोड हो रहल बा...", err_media: "कृपया एगो मीडिया फाइल चुनीं।", err_fields: "कृपया सब जरूरी जानकारी भरीं।" }
+        en: { header: "Add Post", media_box: "Select Photo or Video", title_ph: "Post Title", desc_ph: "Write details here...", loc_ph: "Ward or Area Name", anon_title: "Hide Identity", anon_sub: "Hide your name and photo", submit: "Share Post", publishing: "Uploading...", err_media: "Please add a photo or video.", err_fields: "Please fill all details." },
+        hi: { header: "पोस्ट डालें", media_box: "फ़ोटो या वीडियो चुनें", title_ph: "पोस्ट का शीर्षक", desc_ph: "यहाँ विवरण लिखें...", loc_ph: "वार्ड या क्षेत्र का नाम", anon_title: "पहचान छिपाएं", anon_sub: "अपना नाम और फ़ोटो छिपाएं", submit: "पोस्ट साझा करें", publishing: "अपलोड हो रहा है...", err_media: "कृपया एक फ़ोटो या वीडियो चुनें।", err_fields: "कृपया सभी विवरण भरें।" },
+        hinglish: { header: "Post Daalein", media_box: "Photo ya Video Chunein", title_ph: "Post Title", desc_ph: "Details likhein...", loc_ph: "Ward ya Area ka naam", anon_title: "Identity Hide Karein", anon_sub: "Apna naam aur photo hide karein", submit: "Post Share Karein", publishing: "Upload ho raha hai...", err_media: "Ek photo ya video add karein.", err_fields: "Sabhi details bharein." },
+        mr: { header: "पोस्ट जोडा", media_box: "फोटो किंवा व्हिडिओ निवडा", title_ph: "पोस्टचे शीर्षक", desc_ph: "येथे तपशील लिहा...", loc_ph: "प्रभाग किंवा परिसराचे नाव", anon_title: "ओळख लपवा", anon_sub: "तुमचे नाव आणि फोटो लपवा", submit: "पोस्ट शेअर करा", publishing: "अपलोड होत आहे...", err_media: "कृपया फोटो किंवा व्हिडिओ निवडा.", err_fields: "कृपया सर्व माहिती भरा." },
+        gu: { header: "પોસ્ટ ઉમેરો", media_box: "ફોટો અથવા વિડિઓ પસંદ કરો", title_ph: "પોસ્ટ શીર્ષક", desc_ph: "અહીં વિગતો લખો...", loc_ph: "વોર્ડ અથવા વિસ્તારનું નામ", anon_title: "ઓળખ છુપાવો", anon_sub: "તમારું નામ અને ફોટો છુપાવો", submit: "પોસ્ટ શેર કરો", publishing: "અપલોડ થઈ રહ્યું છે...", err_media: "કૃપા કરીને ફોટો અથવા વિડિઓ ઉમેરો.", err_fields: "કૃપા કરીને બધી વિગતો ભરો." },
+        te: { header: "పోస్ట్‌ను జోడించండి", media_box: "ఫోటో లేదా వీడియోను ఎంచుకోండి", title_ph: "పోస్ట్ శీర్షిక", desc_ph: "ఇక్కడ వివరాలు రాయండి...", loc_ph: "వార్డు లేదా ప్రాంతం పేరు", anon_title: "గుర్తింపు దాచు", anon_sub: "మీ పేరు మరియు ఫోటోను దాచండి", submit: "పోస్ట్‌ను భాగస్వామ్యం చేయండి", publishing: "అప్‌లోడ్ అవుతోంది...", err_media: "దయచేసి ఫోటో లేదా వీడియోను జోడించండి.", err_fields: "దయచేసి అన్ని వివరాలను పూరించండి." },
+        ta: { header: "பதிவைச் சேர்", media_box: "புகைப்படம் அல்லது வீடியோவைத் தேர்ந்தெடு", title_ph: "பதிவு தலைப்பு", desc_ph: "இங்கே விவரங்களை எழுதவும்...", loc_ph: "வார்டு அல்லது பகுதி பெயர்", anon_title: "அடையாளத்தை மறை", anon_sub: "உங்கள் பெயர் மற்றும் புகைப்படத்தை மறைக்கவும்", submit: "பதிவை பகிரவும்", publishing: "பதிவேற்றப்படுகிறது...", err_media: "ஒரு புகைப்படம் அல்லது வீடியோவைச் சேர்க்கவும்.", err_fields: "அனைத்து விவரங்களையும் நிரப்பவும்." },
+        kn: { header: "ಪೋಸ್ಟ್ ಸೇರಿಸಿ", media_box: "ಫೋಟೋ ಅಥವಾ ವೀಡಿಯೊ ಆಯ್ಕೆಮಾಡಿ", title_ph: "ಪೋಸ್ಟ್ ಶೀರ್ಷಿಕೆ", desc_ph: "ಇಲ್ಲಿ ವಿವರಗಳನ್ನು ಬರೆಯಿರಿ...", loc_ph: "ವಾರ್ಡ್ ಅಥವಾ ಪ್ರದೇಶದ ಹೆಸರು", anon_title: "ಗುರುತನ್ನು ಮರೆಮಾಡಿ", anon_sub: "ನಿಮ್ಮ ಹೆಸರು ಮತ್ತು ಫೋಟೋ ಮರೆಮಾಡಿ", submit: "ಪೋಸ್ಟ್ ಹಂಚಿಕೊಳ್ಳಿ", publishing: "ಅಪ್‌ಲೋಡ್ ಆಗುತ್ತಿದೆ...", err_media: "ದಯವಿಟ್ಟು ಫೋಟೋ ಅಥವಾ ವೀಡಿಯೊ ಸೇರಿಸಿ.", err_fields: "ದಯವಿಟ್ಟು ಎಲ್ಲಾ ವಿವರಗಳನ್ನು ಭರ್ತಿ ಮಾಡಿ." },
+        ml: { header: "പോസ്റ്റ് ചേർക്കുക", media_box: "ഫോട്ടോ അല്ലെങ്കിൽ വീഡിയോ തിരഞ്ഞെടുക്കുക", title_ph: "പോസ്റ്റ് തലക്കെട്ട്", desc_ph: "വിശദാംശങ്ങൾ ഇവിടെ എഴുതുക...", loc_ph: "വാർഡ് അല്ലെങ്കിൽ പ്രദേശത്തിന്റെ പേര്", anon_title: "ഐഡന്റിറ്റി മറയ്ക്കുക", anon_sub: "നിങ്ങളുടെ പേരും ഫോട്ടോയും മറയ്ക്കുക", submit: "പോസ്റ്റ് പങ്കിടുക", publishing: "അപ്‌ലോഡ് ചെയ്യുന്നു...", err_media: "ഒരു ഫോട്ടോയോ വീഡിയോയോ ചേർക്കുക.", err_fields: "എല്ലാ വിശദാംശങ്ങളും പൂരിപ്പിക്കുക." },
+        bn: { header: "পোস্ট যোগ করুন", media_box: "ছবি বা ভিডিও নির্বাচন করুন", title_ph: "পোস্টের শিরোনাম", desc_ph: "এখানে বিস্তারিত লিখুন...", loc_ph: "ওয়ার্ড বা এলাকার নাম", anon_title: "পরিচয় লুকান", anon_sub: "আপনার নাম এবং ছবি লুকান", submit: "পোস্ট শেয়ার করুন", publishing: "আপলোড হচ্ছে...", err_media: "অনুগ্রহ করে একটি ছবি বা ভিডিও যোগ করুন।", err_fields: "সব বিস্তারিত পূরণ করুন।" },
+        pa: { header: "ਪੋਸਟ ਸ਼ਾਮਲ ਕਰੋ", media_box: "ਫੋਟੋ ਜਾਂ ਵੀਡੀਓ ਚੁਣੋ", title_ph: "ਪੋਸਟ ਸਿਰਲੇਖ", desc_ph: "ਇੱਥੇ ਵੇਰਵੇ ਲਿਖੋ...", loc_ph: "ਵਾਰਡ ਜਾਂ ਖੇਤਰ ਦਾ ਨਾਮ", anon_title: "ਪਛਾਣ ਲੁਕਾਓ", anon_sub: "ਆਪਣਾ ਨਾਮ ਅਤੇ ਫੋਟੋ ਲੁਕਾਓ", submit: "ਪੋਸਟ ਸਾਂਝੀ ਕਰੋ", publishing: "ਅੱਪਲੋਡ ਹੋ ਰਿਹਾ ਹੈ...", err_media: "ਕਿਰਪਾ ਕਰਕੇ ਇੱਕ ਫੋਟੋ ਜਾਂ ਵੀਡੀਓ ਸ਼ਾਮਲ ਕਰੋ।", err_fields: "ਕਿਰਪਾ ਕਰਕੇ ਸਾਰੇ ਵੇਰਵੇ ਭਰੋ।" },
+        or: { header: "ପୋଷ୍ଟ ଯୋଡନ୍ତୁ", media_box: "ଫଟୋ କିମ୍ବା ଭିଡିଓ ବାଛନ୍ତୁ", title_ph: "ପୋଷ୍ଟ ଶୀର୍ଷକ", desc_ph: "ଏଠାରେ ବିବରଣୀ ଲେଖନ୍ତୁ...", loc_ph: "ୱାର୍ଡ କିମ୍ବା ଅଞ୍ଚଳ ନାମ", anon_title: "ପରିଚୟ ଲୁଚାନ୍ତୁ", anon_sub: "ଆପଣଙ୍କ ନାମ ଏବଂ ଫଟୋ ଲୁଚାନ୍ତୁ", submit: "ପୋଷ୍ଟ ଅଂଶୀଦାର କରନ୍ତୁ", publishing: "ଅପଲୋଡ୍ ହେଉଛି...", err_media: "ଦୟାକରି ଏକ ଫଟୋ କିମ୍ବା ଭିଡିଓ ଯୋଡନ୍ତୁ।", err_fields: "ଦୟାକରି ସମସ୍ତ ବିବରଣୀ ପୂରଣ କରନ୍ତୁ।" },
+        as: { header: "পোষ্ট যোগ কৰক", media_box: "ফটো বা ভিডিঅ' বাছক", title_ph: "পোষ্টৰ শিৰোনাম", desc_ph: "ইয়াত বিৱৰণ লিখক...", loc_ph: "ৱাৰ্ড বা অঞ্চলৰ নাম", anon_title: "পৰিচয় লুকুৱাওক", anon_sub: "আপোনাৰ নাম আৰু ফটো লুকুৱাওক", submit: "পোষ্ট শ্বেয়াৰ কৰক", publishing: "আপলোড হৈ আছে...", err_media: "অনুগ্ৰহ কৰি এখন ফটো বা ভিডিঅ' যোগ কৰক।", err_fields: "অনুগ্ৰহ কৰি সকলো বিৱৰণ পূৰণ কৰক।" },
+        ur: { header: "پوسٹ شامل کریں", media_box: "تصویر یا ویڈیو منتخب کریں", title_ph: "پوسٹ کا عنوان", desc_ph: "یہاں تفصیلات لکھیں۔۔۔", loc_ph: "وارڈ یا علاقے کا نام", anon_title: "شناخت چھپائیں", anon_sub: "اپنا نام اور تصویر چھپائیں", submit: "پوسٹ شیئر کریں", publishing: "اپ لوڈ ہو رہا ہے۔۔۔", err_media: "براہ کرم ایک تصویر یا ویڈیو شامل کریں۔", err_fields: "براہ کرم تمام تفصیلات پُر کریں۔" },
+        bho: { header: "पोस्ट डालीं", media_box: "फोटो या वीडियो चुनीं", title_ph: "पोस्ट के शीर्षक", desc_ph: "इहाँ विवरण लिखीं...", loc_ph: "वार्ड या इलाका के नाम", anon_title: "पहचान छिपाईं", anon_sub: "अपन नाम आ फोटो छिपाईं", submit: "पोस्ट साझा करीं", publishing: "अपलोड हो रहल बा...", err_media: "कृपया एगो फोटो या वीडियो डालीं।", err_fields: "कृपया सगरी जानकारी भरीं।" }
     };
 
     const currentT = t[lang] || t['en'];
@@ -101,8 +101,8 @@ export default function CreatePost() {
             // Step 1: Upload media to external Hugging Face PocketBase instance
             const formData = new FormData();
             formData.append('file', selectedFile);
-            formData.append('user_id', userId);
-            formData.append('post_id', 'pending');
+            formData.append('userId', userId); // CORRECTED PAYLOAD KEY
+            formData.append('postId', 'pending'); // CORRECTED PAYLOAD KEY
             formData.append('is_anonymous', isAnonymous ? 'true' : 'false');
 
             const pbResponse = await fetch('https://movyra-mv-main-db-gradio.hf.space/api/collections/posts_media/records', {
@@ -127,6 +127,7 @@ export default function CreatePost() {
                 mediaUrl: mediaUrl,
                 type: mediaType,
                 isAnonymous: isAnonymous,
+                isStory: false, 
                 likes: 0,
                 createdAt: serverTimestamp()
             });
@@ -240,7 +241,10 @@ export default function CreatePost() {
                         <div className="flex items-center gap-3">
                             {isAnonymous ? <EyeOff size={22} className="text-[#FFB300]" /> : <Eye size={22} className="text-[#111111]/60" />}
                             <div className="flex flex-col">
-                                <span className="font-black text-[0.9rem] leading-tight">{currentT.anon_title}</span>
+                                <span className="font-black text-[0.9rem] leading-tight flex items-center gap-1.5">
+                                    {currentT.anon_title}
+                                    {!isAnonymous && <Shield size={12} className="text-[#00897B]" fill="#00897B" />}
+                                </span>
                                 <span className={`text-[0.75rem] ${isAnonymous ? 'text-[#FFFFFF]/70' : 'text-[#111111]/50'}`}>{currentT.anon_sub}</span>
                             </div>
                         </div>
@@ -253,8 +257,9 @@ export default function CreatePost() {
                     <button 
                         type="submit" 
                         disabled={isSubmitting} 
-                        className="w-full bg-[#00897B] text-[#FFFFFF] font-black py-4 rounded-xl mt-2 active:scale-95 transition-transform disabled:opacity-50 tracking-wide uppercase text-sm shadow-md"
+                        className="w-full bg-[#00897B] text-[#FFFFFF] font-black py-4 rounded-xl mt-2 active:scale-95 transition-transform disabled:opacity-50 tracking-wide uppercase text-sm shadow-md flex items-center justify-center gap-2"
                     >
+                        {isSubmitting && <div className="w-4 h-4 border-2 border-[#FFFFFF]/30 border-t-[#FFFFFF] rounded-full animate-spin"></div>}
                         {isSubmitting ? currentT.publishing : currentT.submit}
                     </button>
                 </form>
