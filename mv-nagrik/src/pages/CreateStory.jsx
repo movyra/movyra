@@ -26,7 +26,7 @@ export default function CreateStory() {
         if (supported.includes(savedLang)) setLang(savedLang);
     }, []);
 
-    // 15 Comprehensive Indian Language Translations (Strictly Professional, No Emojis)
+    // Translations
     const t = {
         en: { header: "New Story", capture: "Select Media", anon_title: "Hide Identity", anon_sub: "Publish anonymously", submit: "Publish Story", uploading: "Publishing...", err_media: "Please select a file.", err_auth: "Authentication required." },
         hi: { header: "नई स्टोरी", capture: "मीडिया चुनें", anon_title: "पहचान छिपाएं", anon_sub: "गुमनाम रूप से प्रकाशित करें", submit: "स्टोरी प्रकाशित करें", uploading: "प्रकाशित हो रहा है...", err_media: "कृपया एक फ़ाइल चुनें।", err_auth: "प्रमाणीकरण आवश्यक है।" },
@@ -47,7 +47,6 @@ export default function CreateStory() {
 
     const currentT = t[lang] || t['en'];
 
-    // Handle File Selection
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -65,7 +64,6 @@ export default function CreateStory() {
         setPreviewUrl(localUrl);
     };
 
-    // Remove Selected Media
     const handleRemoveMedia = () => {
         setSelectedFile(null);
         if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -73,7 +71,6 @@ export default function CreateStory() {
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
-    // Form Submission & Upload Handler
     const handleSubmit = async () => {
         setErrorMessage('');
 
@@ -94,10 +91,9 @@ export default function CreateStory() {
             const userId = currentUser.uid;
             const userDisplayName = currentUser.displayName || currentUser.email?.split('@')[0] || 'Citizen';
 
-            // 1. Upload media strictly to Hugging Face PocketBase instance (stories_media collection)
             const formData = new FormData();
             formData.append('file', selectedFile);
-            formData.append('userId', userId); // CORRECTED PAYLOAD KEY
+            formData.append('user_id', userId); // Matches image_f2976a.png exactly
 
             const pbResponse = await fetch('https://movyra-mv-main-db-gradio.hf.space/api/collections/stories_media/records', {
                 method: 'POST',
@@ -111,14 +107,13 @@ export default function CreateStory() {
             const pbRecord = await pbResponse.json();
             const mediaUrl = `https://movyra-mv-main-db-gradio.hf.space/api/files/${pbRecord.collectionId}/${pbRecord.id}/${pbRecord.file}`;
 
-            // 2. Write metadata to Firestore collection
             await addDoc(collection(db, 'nagrik_reels'), {
                 authorId: userId,
                 authorName: isAnonymous ? 'Hidden Citizen' : userDisplayName,
                 mediaUrl: mediaUrl,
                 type: mediaType,
                 isAnonymous: isAnonymous,
-                isStory: true, // Distinguishes 24-hour stories from standard feed posts
+                isStory: true,
                 location: 'Local Update',
                 likes: 0,
                 createdAt: serverTimestamp()
@@ -138,18 +133,15 @@ export default function CreateStory() {
             animate={{ opacity: 1, y: 0 }}
             className="fixed inset-0 z-50 bg-[#111111] font-sans text-[#FFFFFF] flex flex-col"
         >
-            {/* Header */}
             <div className="absolute top-0 left-0 right-0 z-30 p-4 flex items-center justify-between bg-gradient-to-b from-[#111111]/80 to-transparent">
                 <button onClick={() => navigate(-1)} className="w-10 h-10 bg-[#FFFFFF]/10 backdrop-blur-md rounded-full flex items-center justify-center outline-none active:scale-95 transition-transform">
                     <X size={24} className="text-[#FFFFFF]" />
                 </button>
                 <span className="font-black text-[1.1rem] tracking-tight drop-shadow-md">{currentT.header}</span>
-                <div className="w-10"></div> {/* Spacer for centering */}
+                <div className="w-10"></div>
             </div>
 
-            {/* Main Content Area */}
             <div className="flex-1 relative flex items-center justify-center overflow-hidden bg-[#111111]">
-                
                 {errorMessage && (
                     <div className="absolute top-20 left-4 right-4 z-40 p-3.5 bg-red-500/90 backdrop-blur-md border border-red-400 text-[#FFFFFF] text-sm font-bold rounded-xl text-center shadow-lg">
                         {errorMessage}
@@ -193,10 +185,7 @@ export default function CreateStory() {
                 )}
             </div>
 
-            {/* Bottom Action Bar */}
             <div className="bg-[#111111] pb-8 pt-4 px-6 rounded-t-3xl border-t border-[#FFFFFF]/10 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] z-40 relative">
-                
-                {/* Anonymous Toggle */}
                 <div 
                     onClick={() => setIsAnonymous(!isAnonymous)}
                     className={`w-full p-4 rounded-xl border mb-6 flex items-center justify-between cursor-pointer transition-all ${isAnonymous ? 'bg-[#FFFFFF]/10 border-[#FFB300]/50 text-[#FFFFFF]' : 'bg-[#FFFFFF]/5 border-[#FFFFFF]/10 text-[#FFFFFF]'}`}
@@ -216,7 +205,6 @@ export default function CreateStory() {
                     </div>
                 </div>
 
-                {/* Submit Button */}
                 <button 
                     onClick={handleSubmit}
                     disabled={!previewUrl || isSubmitting} 
