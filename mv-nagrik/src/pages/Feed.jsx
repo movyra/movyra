@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Volume2, VolumeX, Share2, MapPin, Play, Heart, MessageCircle, MoreVertical, Plus, Bookmark, EyeOff, Shield, ArrowRight, Lock, Users, Mail } from 'lucide-react';
+import { Volume2, VolumeX, Share2, MapPin, Play, Heart, MessageCircle, MoreVertical, Plus, Bookmark, EyeOff, BadgeCheck, ArrowRight, Lock, Users, Mail, Trash2 } from 'lucide-react';
 import { collection, query, orderBy, limit, onSnapshot, doc, setDoc, deleteDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { db, auth } from '../firebaseConfig';
@@ -13,8 +13,10 @@ const PostItem = ({ post, currentT, isMuted, toggleMute, navigate }) => {
     const [isLiked, setIsLiked] = useState(false);
     const [isBookmarked, setIsBookmarked] = useState(false);
     const [likeCount, setLikeCount] = useState(post.likes || 0);
+    const [showMenu, setShowMenu] = useState(false);
 
     const currentUser = auth.currentUser;
+    const isAuthor = currentUser?.uid === post.authorId;
 
     useEffect(() => {
         const options = { root: null, rootMargin: '0px', threshold: 0.6 };
@@ -99,9 +101,22 @@ const PostItem = ({ post, currentT, isMuted, toggleMute, navigate }) => {
         }
     };
 
+    const handleDeletePost = async () => {
+        if (!isAuthor) return;
+        if (window.confirm("Delete this post? This action cannot be undone.")) {
+            try {
+                await deleteDoc(doc(db, 'nagrik_reels', post.id));
+            } catch (error) {
+                console.error("Failed to delete post:", error);
+                alert("Error deleting post.");
+            }
+        }
+        setShowMenu(false);
+    };
+
     return (
         <div className="w-full bg-[#FFFFFF] border-b border-[#111111]/10 mb-2">
-            <div className="flex items-center justify-between p-3">
+            <div className="flex items-center justify-between p-3 relative">
                 <div 
                     className="flex items-center gap-3 cursor-pointer"
                     onClick={() => navigate(`/profile/${post.authorId || 'anonymous'}`)}
@@ -117,17 +132,49 @@ const PostItem = ({ post, currentT, isMuted, toggleMute, navigate }) => {
                     </div>
                     <div className="flex flex-col">
                         <span className="text-[#111111] text-[0.85rem] font-bold leading-tight flex items-center gap-1">
-                            {post.isAnonymous ? 'Hidden Citizen' : (post.authorName || 'Citizen')}
-                            {!post.isAnonymous && <Shield size={12} className="text-[#00897B]" fill="#00897B" />}
+                            {post.isAnonymous ? 'Hidden Citizen' : `${post.authorName} - Citizen`}
+                            {!post.isAnonymous && <BadgeCheck size={14} className="text-[#00897B]" fill="#00897B" color="#FFFFFF" />}
                         </span>
                         <span className="text-[#111111]/50 text-[0.7rem] font-medium leading-tight">
                             {post.location || currentT.local_update}
                         </span>
                     </div>
                 </div>
+                
                 <div className="flex items-center gap-3">
                     <button className="text-[#00897B] text-[0.8rem] font-bold outline-none">{currentT.follow}</button>
-                    <button className="text-[#111111] outline-none"><MoreVertical size={18} /></button>
+                    <div className="relative">
+                        <button onClick={() => setShowMenu(!showMenu)} className="text-[#111111] outline-none p-1">
+                            <MoreVertical size={18} />
+                        </button>
+                        
+                        {/* Interactive Post Menu */}
+                        <AnimatePresence>
+                            {showMenu && (
+                                <motion.div 
+                                    initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                                    className="absolute right-0 top-full mt-2 w-32 bg-[#FFFFFF] border border-[#111111]/10 rounded-xl shadow-lg overflow-hidden z-50"
+                                >
+                                    {isAuthor && (
+                                        <button 
+                                            onClick={handleDeletePost}
+                                            className="w-full flex items-center gap-2 px-4 py-3 text-[0.8rem] font-bold text-red-600 hover:bg-red-50 transition-colors outline-none"
+                                        >
+                                            <Trash2 size={14} /> Delete
+                                        </button>
+                                    )}
+                                    <button 
+                                        onClick={() => { handleShare(); setShowMenu(false); }}
+                                        className="w-full flex items-center gap-2 px-4 py-3 text-[0.8rem] font-bold text-[#111111] hover:bg-[#F9FAFB] transition-colors outline-none"
+                                    >
+                                        <Share2 size={14} /> Share
+                                    </button>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
                 </div>
             </div>
 
@@ -237,7 +284,7 @@ export default function Feed() {
         hinglish: { title: "Community", loading: "Load ho raha hai...", no_data: "Koi news nahi hai.", req_login: "Pehle login karein.", share_title: "Ise dekhein", share_desc: "Local news", local_update: "Local News", chat: "Chat", follow: "Follow", my_story: "Story Daalein", likes: "likes", view_comments: "Sabhi comments dekhein", tut_title: "Hamari Community mein Swagat hai", tut_desc: "Local news share karein, problem batayein aur logon ki madad karein.", start: "Join Now", login_title: "User Login", email: "Email", pass: "Password", btn_login: "Login", btn_signup: "Sign Up", btn_google: "oogle", switch_signup: "Account nahi hai? Sign up karein", switch_login: "Account hai? Login karein", err_auth: "Login fail. Phir try karein." },
         mr: { title: "समुदाय", loading: "लोड होत आहे...", no_data: "कोणतीही बातमी नाही.", req_login: "कृपया आधी लॉगिन करा.", share_title: "हे पहा", share_desc: "स्थानिक बातमी", local_update: "स्थानिक बातमी", chat: "चॅट", follow: "फॉलो करा", my_story: "स्टोरी जोडा", likes: "पसंत", view_comments: "सर्व कमेंट्स पहा", tut_title: "आमच्या समुदायात आपले स्वागत आहे", tut_desc: "स्थानिक बातम्या सामायिक करा, समस्या सांगा आणि लोकांना मदत करा.", start: "सुरू करा", login_title: "वापरकर्ता लॉगिन", email: "ईमेल", pass: "पासवर्ड", btn_login: "लॉगिन", btn_signup: "साइन अप", btn_google: "oogle", switch_signup: "खाते नाही? साइन अप करा", switch_login: "खाते आहे? लॉगिन करा", err_auth: "लॉगिन अयशस्वी. पुन्हा प्रयत्न करा." },
         gu: { title: "સમુદાય", loading: "લોડ થઈ રહ્યું છે...", no_data: "કોઈ સમાચાર નથી.", req_login: "કૃપા કરીને પહેલા લોગિન કરો.", share_title: "આ જુઓ", share_desc: "સ્થાનિક સમાચાર", local_update: "સ્થાનિક સમાચાર", chat: "ચેટ", follow: "ફોલો કરો", my_story: "સ્ટોરી ઉમેરો", likes: "પસંદ", view_comments: "બધી ટિપ્પણીઓ જુઓ", tut_title: "અમારા સમુદાયમાં તમારું સ્વાગત છે", tut_desc: "સ્થાનિક સમાચાર શેર કરો, સમસ્યાઓ કહો અને લોકોને મદદ કરો.", start: "શરૂ કરો", login_title: "વપરાશકર્તા લોગિન", email: "ઇમેઇલ", pass: "પાસવર્ડ", btn_login: "લોગિન", btn_signup: "સાઇન અપ", btn_google: "oogle", switch_signup: "એકાઉન્ટ નથી? સાઇન અપ કરો", switch_login: "એકાઉન્ટ છે? લોગિન કરો", err_auth: "લોગિન નિષ્ફળ. ફરી પ્રયાસ કરો." },
-        te: { title: "కమ్యూనిటీ", loading: "లోడ్ అవుతోంది...", no_data: "వార్తలు లేవు.", req_login: "దయచేసి లాగిన్ చేయండి.", share_title: "దీన్ని చూడండి", share_desc: "స్థానిక వార్తలు", local_update: "స్థానిక వార్తలు", chat: "చాట్", follow: "అనుసరించండి", my_story: "స్టోరీ జోడించండి", likes: "ఇష్టాలు", view_comments: "అన్ని వ్యాఖ్యలను చూడండి", tut_title: "మా కమ్యూనిటీకి స్వాగతం", tut_desc: "స్థానిక వార్తలను పంచుకోండి, సమస్యలను చెప్పండి మరియు ప్రజలకు సహాయం చేయండి.", start: "ప్రారంభించండి", login_title: "వినియోగదారు లాగిన్", email: "ఇమెయిల్", pass: "పాస్‌వర్డ్", btn_login: "లాగిన్", btn_signup: "సైన్ అప్", btn_google: "oogle", switch_signup: "ఖాతా లేదా? సైన్ అప్ చేయండి", switch_login: "ఖాతా ఉందా? లాగిన్ చేయండి", err_auth: "లాగిన్ విఫలమైంది. మళ్లీ ప్రయత్నించండి." },
+        te: { title: "కమ్యూనిటీ", loading: "లోడ్ అవుతోంది...", no_data: "వార్తలు లేవు.", req_login: "దయచేసి లాగిన్ చేయండి.", share_title: "దీన్ని చూడండి", share_desc: "స్థానిక వార్తలు", local_update: "స్థానిక వార్తలు", chat: "చాట్", follow: "అనుసరించండి", my_story: "స్టోరీ జోడించండి", likes: "ఇష్టాలు", view_comments: "అన్ని వ్యాఖ్యలను చూడండి", tut_title: "మా కమ్యూనిటీకి స్వాగతం", tut_desc: "స్థానిక వార్తలను పంచుకోండి, సమస్యలను చెప్పండి మరియు ప్రజలకు సహాయం చేయండి.", start: "ప్రారంభించండి", login_title: "వినియోగదారు లాగిన్", email: "ఇమెయిల్", pass: "పాస్‌వర్డ్", btn_login: "లాగిన్", btn_signup: "సైన్ అప్", btn_google: "oogle", switch_signup: "ఖాతా లేదా? సైన్ అప్ చేయండి", switch_login: "ఖాతా ఉందా? లాగిన్ చేయండి", err_auth: "లాగిన్ విఫలమైంది. మళ్లీ ప్రయత్నించండి." },
         ta: { title: "சமூகம்", loading: "ஏற்றப்படுகிறது...", no_data: "செய்திகள் இல்லை.", req_login: "உள்நுழையவும்.", share_title: "இதைப் பார்க்கவும்", share_desc: "உள்ளூர் செய்திகள்", local_update: "உள்ளூர் செய்திகள்", chat: "அரட்டை", follow: "பின்தொடர்", my_story: "கதையைச் சேர்", likes: "விருப்பங்கள்", view_comments: "அனைத்து கருத்துகளையும் காண்க", tut_title: "எங்கள் சமூகத்திற்கு வரவேற்கிறோம்", tut_desc: "உள்ளூர் செய்திகளைப் பகிரவும், பிரச்சினைகளைக் கூறவும், மக்களுக்கு உதவவும்.", start: "தொடங்கு", login_title: "பயனர் உள்நுழைவு", email: "மின்னஞ்சல்", pass: "கடவுச்சொல்", btn_login: "உள்நுழை", btn_signup: "பதிவு செய்", btn_google: "oogle", switch_signup: "கணக்கு இல்லையா? பதிவு செய்", switch_login: "கணக்கு உள்ளதா? உள்நுழை", err_auth: "உள்நுழைவு தோல்வி. மீண்டும் முயற்சிக்கவும்." },
         kn: { title: "ಸಮುದಾಯ", loading: "ಲೋಡ್ ಆಗುತ್ತಿದೆ...", no_data: "ಯಾವುದೇ ಸುದ್ದಿಯಿಲ್ಲ.", req_login: "ದಯವಿಟ್ಟು ಲಾಗಿನ್ ಮಾಡಿ.", share_title: "ಇದನ್ನು ನೋಡಿ", share_desc: "ಸ್ಥಳೀಯ ಸುದ್ದಿ", local_update: "ಸ್ಥಳೀಯ ಸುದ್ದಿ", chat: "ಚಾಟ್", follow: "ಅನುಸರಿಸಿ", my_story: "ಕಥೆ ಸೇರಿಸಿ", likes: "ಇಷ್ಟಗಳು", view_comments: "ಎಲ್ಲಾ ಕಾಮೆಂಟ್‌ಗಳನ್ನು ನೋಡಿ", tut_title: "ನಮ್ಮ ಸಮುದಾಯಕ್ಕೆ ಸ್ವಾಗತ", tut_desc: "ಸ್ಥಳೀಯ ಸುದ್ದಿಗಳನ್ನು ಹಂಚಿಕೊಳ್ಳಿ, ಸಮಸ್ಯೆಗಳನ್ನು ಹೇಳಿ ಮತ್ತು ಜನರಿಗೆ ಸಹಾಯ ಮಾಡಿ.", start: "ಪ್ರಾರಂಭಿಸಿ", login_title: "ಬಳಕೆದಾರ ಲಾಗಿನ್", email: "ಇಮೇಲ್", pass: "ಪಾಸ್‌ವರ್ಡ್", btn_login: "ಲಾಗಿನ್", btn_signup: "ಸೈನ್ ಅಪ್", btn_google: "oogle", switch_signup: "ಖಾತೆ ಇಲ್ಲವೇ? ಸೈನ್ ಅಪ್ ಮಾಡಿ", switch_login: "ಖಾತೆ ಇದೆಯೇ? ಲಾಗಿನ್ ಮಾಡಿ", err_auth: "ಲಾಗಿನ್ ವಿಫಲವಾಗಿದೆ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ." },
         ml: { title: "കമ്മ്യൂണിറ്റി", loading: "ലോഡ് ചെയ്യുന്നു...", no_data: "വാർത്തകളില്ല.", req_login: "ദയവായി ലോഗിൻ ചെയ്യുക.", share_title: "ഇത് കാണുക", share_desc: "പ്രാദേശിക വാർത്തകൾ", local_update: "പ്രാദേശിക വാർത്തകൾ", chat: "ചാറ്റ്", follow: "ഫോളോ ചെയ്യുക", my_story: "സ്റ്റോറി ചേർക്കുക", likes: "ലൈക്കുകൾ", view_comments: "എല്ലാ അഭിപ്രായങ്ങളും കാണുക", tut_title: "ഞങ്ങളുടെ കമ്മ്യൂണിറ്റിയിലേക്ക് സ്വാഗതം", tut_desc: "പ്രാദേശിക വാർത്തകൾ പങ്കിടുക, പ്രശ്നങ്ങൾ പറയുക, ആളുകളെ സഹായിക്കുക.", start: "ആരംഭിക്കുക", login_title: "ലോഗിൻ", email: "ഇമെയിൽ", pass: "പാസ്‌വേർഡ്", btn_login: "ലോഗിൻ", btn_signup: "സൈൻ അപ്പ്", btn_google: "oogle", switch_signup: "അക്കൗണ്ട് ഇല്ലേ? സൈൻ അപ്പ് ചെയ്യുക", switch_login: "അക്കൗണ്ട് ഉണ്ടോ? ലോഗിൻ ചെയ്യുക", err_auth: "ലോഗിൻ പരാജയപ്പെട്ടു. വീണ്ടും ശ്രമിക്കുക." },
