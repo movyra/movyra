@@ -97,7 +97,7 @@ export default function CreateStory() {
             // 1. Upload media strictly to Hugging Face PocketBase instance (stories_media collection)
             const formData = new FormData();
             formData.append('file', selectedFile);
-            formData.append('user_id', userId);
+            formData.append('userId', userId); // CORRECTED PAYLOAD KEY
 
             const pbResponse = await fetch('https://movyra-mv-main-db-gradio.hf.space/api/collections/stories_media/records', {
                 method: 'POST',
