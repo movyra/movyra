@@ -12,9 +12,10 @@
 
 import React, { Suspense, useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { AnimatePresence } from 'framer-motion';
-import { auth } from './firebaseConfig';
+import { AnimatePresence, motion } from 'framer-motion';
+import { auth, db } from './firebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
+import { collection, query, limit, onSnapshot } from 'firebase/firestore';
 
 // Global Navigation Components
 import TopNav from './components/Header/TopNav';
@@ -83,17 +84,125 @@ const AdminRoute = ({ children }) => {
     return <Navigate to="/home" replace />;
 };
 
+// Global Emergency Intrusion System
+const GlobalEmergencyOverlay = ({ currentUser }) => {
+    const [activeWarning, setActiveWarning] = useState(null);
+
+    useEffect(() => {
+        // Listen to the live emergency broadcast channel
+        const q = query(collection(db, 'nagrik_sos'), limit(1));
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            snapshot.docChanges().forEach((change) => {
+                if (change.type === 'added' || change.type === 'modified') {
+                    const data = change.doc.data();
+                    // Trigger overlay if the event is marked active
+                    if (data.status === 'active' || data.isCritical) {
+                        setActiveWarning(data);
+                        triggerAudioAlarm();
+                    } else {
+                        setActiveWarning(null);
+                        stopAudioAlarm();
+                    }
+                }
+            });
+        });
+        return () => {
+            unsubscribe();
+            stopAudioAlarm();
+        };
+    }, []);
+
+    const triggerAudioAlarm = () => {
+        try {
+            // Standard priority alert sound
+            const audio = new Audio('https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg');
+            audio.loop = true;
+            audio.play().catch((e) => console.log("Audio autoplay restricted by browser policy."));
+            window.globalAlarmInstance = audio;
+        } catch (error) {}
+    };
+
+    const stopAudioAlarm = () => {
+        if (window.globalAlarmInstance) {
+            window.globalAlarmInstance.pause();
+            window.globalAlarmInstance = null;
+        }
+        setActiveWarning(null);
+    };
+
+    const runAdminTest = () => {
+        setActiveWarning({
+            title: "System Test Warning",
+            description: "This is a simulated critical event test. A danger zone has been reported within a 10km radius of your location."
+        });
+        triggerAudioAlarm();
+    };
+
+    return (
+        <>
+            {/* Exclusive Super Admin Testing Interface */}
+            {currentUser && currentUser.email === 'testcodecfg@gmail.com' && (
+                <button 
+                    onClick={runAdminTest}
+                    className="fixed bottom-24 right-4 z-[9000] bg-[#111111] text-[#FFFFFF] px-4 py-3 rounded-xl font-bold text-[0.8rem] shadow-2xl border border-[#FFFFFF]/20 outline-none uppercase tracking-wider"
+                >
+                    Test 10km Warning
+                </button>
+            )}
+
+            {/* Intrusive Full-Screen Warning Overlay */}
+            <AnimatePresence>
+                {activeWarning && (
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[9999] bg-[#DC2626] flex flex-col items-center justify-center p-6 text-center backdrop-blur-md"
+                    >
+                        <div className="bg-[#FFFFFF] p-8 rounded-3xl max-w-sm w-full shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+                            <div className="w-20 h-20 bg-[#DC2626]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <div className="w-10 h-10 bg-[#DC2626] rounded-full animate-pulse"></div>
+                            </div>
+                            
+                            <h1 className="text-[#DC2626] text-[1.8rem] font-black mb-2 uppercase tracking-tight leading-tight">
+                                Critical Alert
+                            </h1>
+                            
+                            <p className="text-[#111111] text-[1.1rem] font-black mb-4 leading-snug">
+                                {activeWarning.title || "Severe Danger Reported"}
+                            </p>
+                            
+                            <p className="text-[#111111]/70 text-[0.95rem] font-bold mb-8 leading-relaxed">
+                                {activeWarning.description || "An emergency event has been verified within 10km of your current position. Please move to safety immediately and follow local authority instructions."}
+                            </p>
+                            
+                            <button 
+                                onClick={stopAudioAlarm}
+                                className="w-full bg-[#111111] text-[#FFFFFF] font-black py-4 rounded-xl active:scale-95 transition-transform uppercase tracking-wider text-sm outline-none"
+                            >
+                                I Understand
+                            </button>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </>
+    );
+};
+
 // Layout Wrapper to conditionally handle Navigation visibility based on current route
 const AppLayout = () => {
     const location = useLocation();
     const navigate = useNavigate();
+    const [currentUser, setCurrentUser] = useState(null);
     
     // Global Authentication State Listener
     // Automatically intercepts the route and pushes authenticated users to /home
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            setCurrentUser(user);
             // Check limits user redirection on login to avoid blocking the public download page
-            if (currentUser && (location.pathname === '/onboarding' || location.pathname === '/')) {
+            if (user && (location.pathname === '/onboarding' || location.pathname === '/')) {
                 navigate('/home', { replace: true });
             }
         });
@@ -108,6 +217,10 @@ const AppLayout = () => {
 
     return (
         <div className={`${isWidescreenRoute ? "w-full min-h-screen bg-[#FFFFFF]" : "relative min-h-screen bg-[#FFFFFF]"}`}>
+            
+            {/* Inject Global Emergency Warning System */}
+            <GlobalEmergencyOverlay currentUser={currentUser} />
+
             {/* Conditionally render Top Navigation */}
             {!isExcludedRoute && <TopNav />}
 
