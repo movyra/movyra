@@ -343,7 +343,7 @@ export default function Home() {
                     className={`w-full bg-[#111111]/5 rounded-2xl overflow-hidden border border-[#111111]/10 relative shadow-sm ${isMapFullscreen ? 'h-screen rounded-none border-0' : 'h-[300px]'}`}
                 >
                     <MapContainer center={userCoords} zoom={13} style={{ height: '100%', width: '100%' }} zoomControl={false}>
-                        <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
+                        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                         <ChangeView center={userCoords} zoom={13} />
                         
                         {mapReports.map((report) => (
